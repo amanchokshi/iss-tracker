@@ -6,6 +6,33 @@ import matplotlib.pyplot as plt
 from astropy.time import Time
 from skyfield.api import Topos, load, Loader
 
+
+import dash
+import dash_core_components as dcc
+import dash_html_components as html
+
+# instantiate the dash 
+app = dash.Dash()
+
+# Can use external  CSS style sheets can be used to help with the formatting. For example Bootstrap:
+app.css.append_css({'external_url':'https://cdnjs.cloudflare.com/ajax/libs/normalize/7.0.0/normalize.min.css'})
+app.css.append_css({'external_url':'https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-beta/css/bootstrap.css'})
+app.css.config.serve_locally = False
+
+
+# Now the Install instructions
+app.layout = html.Div([
+                # OUTERMOST DIV
+                html.Div([
+                    html.H1(children='Track the International Space Station',
+                            className='mx-auto  text-white'),
+                                     ],
+                    style={'background-color': '#333333'},
+                    className='row rounded mx-auto  text-white'
+                ),
+                # END OUTERMOST DIV
+            ])
+
 stations_url = 'http://celestrak.com/NORAD/elements/stations.txt'
 load = Loader('./data')
 satellites = load.tle(stations_url)
@@ -16,7 +43,6 @@ year, month, day = dt.split('-')
 hour, minute, second = tm.split(':')
 sec, _ = second.split('.')
     
-
 ts = load.timescale(builtin=True)
 t = ts.utc(int(year),
         int(month),
@@ -26,13 +52,15 @@ t = ts.utc(int(year),
         int(sec)
         )
 
-
+# If ISS TLE is more than 7 days old, reload it
 days = t - satellite.epoch
 
-if abs(days) > 14:
+if abs(days) > 7:
     satellites = load.tle(stations_url, reload=True)
     satellite = satellites['ISS (ZARYA)']
 
+# Time array at which to calculate the position of ISS
+# Cadence set to 20 seconds, currently
 t_steps = np.arange(0, (60 * 60 * 24), 20)
 
 time_range = ts.utc(int(year),
@@ -43,7 +71,7 @@ time_range = ts.utc(int(year),
         t_steps
         )
 
-
+# Lat Lon of Coffs Harbour
 lat_lon = Topos('-30.2986 N', '153.1094 E')  
 
 orbit = (satellite - lat_lon).at(time_range)
@@ -148,11 +176,13 @@ def utc2local(utc):
     local_timezone = tzlocal.get_localzone()
     utc_time = datetime.strptime(utc, "%Y-%m-%d %H:%M:%S")
     local_time,_ = str(utc_time.replace(tzinfo=pytz.utc).astimezone(local_timezone)).split('+')
-    dt, tm = local_time.split()
+    _, tm = local_time.split()
     return tm
 
+#plot the next four ISS passes
+#for i in range(4):
+#    sat_plot(sat_ephem['sat_alt'][i], sat_ephem['sat_az'][i], sat_ephem['t_rise'][i], sat_ephem['t_set'][i])
 
-for i in range(len(sat_ephem['sat_alt'])):
-    sat_plot(sat_ephem['sat_alt'][i], sat_ephem['sat_az'][i], sat_ephem['t_rise'][i], sat_ephem['t_set'][i])
-
+if __name__ == '__main__':
+    app.run_server(port=8080)
 
