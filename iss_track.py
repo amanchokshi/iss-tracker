@@ -186,9 +186,8 @@ data = [
     go.Scatterpolar(
         r = sat_ephem['sat_alt'][0],
         theta = sat_ephem['sat_az'][0],
-        mode = 'markers',
-        #fill = 'toself',
-        #fillcolor = '#709BFF',
+        thetaunit = "radians",
+        mode = 'lines',
         line =  dict(
             color = 'black'
         )
@@ -201,8 +200,12 @@ layout = go.Layout(
         radialaxis = dict(
             visible = True,
             range = [90,0]
-        )
+        ),
+        angularaxis = dict(
+            direction = "clockwise"
+      )
     ),
+
     showlegend = False
 )
 fig = go.Figure(data=data, layout=layout)
