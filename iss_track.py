@@ -11,6 +11,9 @@ import dash
 import dash_core_components as dcc
 import dash_html_components as html
 
+import plotly.express as px
+import plotly.graph_objects as go
+
 # instantiate the dash 
 app = dash.Dash()
 
@@ -178,6 +181,36 @@ def utc2local(utc):
     local_time,_ = str(utc_time.replace(tzinfo=pytz.utc).astimezone(local_timezone)).split('+')
     _, tm = local_time.split()
     return tm
+
+data = [
+    go.Scatterpolar(
+        r = sat_ephem['sat_alt'][0],
+        theta = sat_ephem['sat_az'][0],
+        mode = 'markers',
+        #fill = 'toself',
+        #fillcolor = '#709BFF',
+        line =  dict(
+            color = 'black'
+        )
+    )
+]    
+
+
+layout = go.Layout(
+    polar = dict(
+        radialaxis = dict(
+            visible = True,
+            range = [90,0]
+        )
+    ),
+    showlegend = False
+)
+fig = go.Figure(data=data, layout=layout)
+
+fig.update_layout(showlegend=False)
+fig.show()
+
+
 
 #plot the next four ISS passes
 #for i in range(4):
